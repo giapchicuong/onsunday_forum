@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:onsunday_forum/features/auth/dtos/login_dto.dart';
-import 'package:onsunday_forum/features/auth/dtos/login_success_dto.dart';
+import 'package:onsunday_forum/features/auth/dtos/register_dto.dart';
+
+import '../dtos/login_dto.dart';
+import '../dtos/login_success_dto.dart';
 
 class AuthApiClient {
   final Dio dio;
@@ -8,11 +10,33 @@ class AuthApiClient {
   AuthApiClient(this.dio);
 
   Future<LoginSuccessDto> login(LoginDto loginDto) async {
-    final response = await dio.post('/auth/login', data: {
-      'username': loginDto.username,
-      'password': loginDto.password,
-    });
+    try {
+      final response = await dio.post(
+        '/auth/login/',
+        data: loginDto.toJson(),
+      );
+      return LoginSuccessDto.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response!.data['error_message']);
+      } else {
+        throw Exception(e.message);
+      }
+    }
+  }
 
-    return LoginSuccessDto.fromJson(response.data);
+  Future<void> register(RegisterDto registerDto) async {
+    try {
+      await dio.post(
+        'auth/register',
+        data: registerDto.toJson(),
+      );
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response!.data['error_message']);
+      } else {
+        throw Exception(e.message);
+      }
+    }
   }
 }
